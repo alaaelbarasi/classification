@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import tensorflow as tf
 import pandas as pd 
+import os
 
 cols_names=['sepalLength','sepalWidth','petalLength','petalWidth','Species']
 species=['Setosa','Versicolor','Virginica']# classes the datapoints belong to
@@ -41,7 +42,26 @@ classifier=tf.estimator.DNNClassifier(feature_columns=feature_col,hidden_units=[
 # Trainig the model 
 classifier.train(input_fn=lambda:input_fn(train,y_train,trainig=True),steps=5000)
 #evaluating the model 
-eval_result=classifier.evaluate(input_fn=lambda:input_fn(test,y_test,trainig=False))
-print('Test set accuracy:{accuracy:0.3f}\n'.format(**eval_result))
+classifier.evaluate(input_fn=lambda:input_fn(test,y_test,trainig=False))
+# clearinig the terminal 
+os.system('cls' if os.name == 'nt' else 'clear') 
+#prediction
 
+def input_fn(features,batc_size=256):
+    #converting the input into a dataset without labels
+    return tf.data.Dataset.from_tensor_slices(dict(features)).batch(batc_size)
+features=['sepalLength','sepalWidth','petalLength','petalWidth']
+predict={}
+print(' ****Enter numeric values****')
+for fetaure in features:
+    vaild=True
+    while vaild:
+        val= input(fetaure+':')
+        if not val.isdigit():vaild=False
+    predict[fetaure]=[float(val)]
 
+prediction= classifier.predict(input_fn=lambda:input_fn(predict))
+for pred_dict in prediction:
+    class_id=pred_dict['class_ids'][0]
+    probability=pred_dict['probabilities'][class_id]
+print('Prediction is "{}" ({:.1f}%)'.format(species[class_id], 100 * probability))
