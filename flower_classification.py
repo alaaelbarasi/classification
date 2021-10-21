@@ -32,7 +32,16 @@ def input_fn(features, labels, trainig=True,batch_zise=256):
         ds=ds.shuffle(1000).repeat()
     return ds.batch(batch_zise)
 # creating feature columns
-feature_col=[]
+feature_col=[] 
 for key in train.keys():
-     feature_col.append(tf.feature_columns.numeric_column(key=key))
+     feature_col.append(tf.feature_column.numeric_column(key=key))
+
+# building the model 
+classifier=tf.estimator.DNNClassifier(feature_columns=feature_col,hidden_units=[30,10],n_classes=3)
+# Trainig the model 
+classifier.train(input_fn=lambda:input_fn(train,y_train,trainig=True),steps=5000)
+#evaluating the model 
+eval_result=classifier.evaluate(input_fn=lambda:input_fn(test,y_test,trainig=False))
+print('Test set accuracy:{accuracy:0.3f}\n'.format(**eval_result))
+
 
